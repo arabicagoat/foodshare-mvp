@@ -25,13 +25,37 @@
   </div>
 
   <div class="card" style="margin-top: 1rem;">
-    <h2>2. Create a test user (coming soon)</h2>
-    <p>We’ll wire this up after confirming the basics.</p>
-  </div>
+  <h2>2. Create a test user</h2>
 
-  <script>
+  <label>
+    Email
+    <input id="signupEmail" type="email" placeholder="you@example.com" />
+  </label>
+
+  <label>
+    Password
+    <input id="signupPassword" type="password" placeholder="••••••••" />
+  </label>
+
+  <label>
+    Display name
+    <input id="signupName" type="text" placeholder="Neighbor in OKC" />
+  </label>
+
+  <label>
+    ZIP code (optional)
+    <input id="signupZip" type="text" placeholder="73101" />
+  </label>
+
+  <button id="signupBtn" style="margin-top: 0.75rem;">Create user</button>
+
+  <pre id="signupOutput">// fill the form and click "Create user"</pre>
+</div>
+
+      <script>
     const API_BASE = 'http://localhost:3000';
 
+    // Health check button
     document.getElementById('healthBtn').addEventListener('click', async () => {
       const out = document.getElementById('healthOutput');
       out.textContent = 'Checking...';
@@ -43,6 +67,33 @@
         out.textContent = 'Error: ' + err.message;
       }
     });
+
+    // Sign-up button
+    const signupBtn = document.getElementById('signupBtn');
+    const signupOutput = document.getElementById('signupOutput');
+
+    signupBtn.addEventListener('click', async () => {
+      const email = document.getElementById('signupEmail').value.trim();
+      const password = document.getElementById('signupPassword').value;
+      const display_name = document.getElementById('signupName').value.trim();
+      const zip_code = document.getElementById('signupZip').value.trim();
+
+      signupOutput.textContent = 'Creating user...';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, display_name, zip_code })
+        });
+
+        const data = await res.json();
+        signupOutput.textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        signupOutput.textContent = 'Error: ' + err.message;
+      }
+    });
   </script>
 </body>
 </html>
+
