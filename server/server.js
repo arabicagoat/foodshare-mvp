@@ -25,10 +25,11 @@ app.get('/api/health', async (req, res) => {
     const result = await pool.query('SELECT NOW() as now');
     res.json({ ok: true, time: result.rows[0].now });
   } catch (err) {
-    console.error('Health check error:', err);
+    console.error('Health check error:', err);  // <-- this will show details in Terminal
     res.status(500).json({ ok: false, error: 'Database error' });
   }
 });
+
 
 // Root route
 app.get('/', (req, res) => {

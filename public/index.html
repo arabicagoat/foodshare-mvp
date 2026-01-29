@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>FoodShare OKC – MVP</title>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; margin: 2rem; background: #f7fafc; }
+    h1 { margin-bottom: 0.5rem; }
+    .card { background: white; padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); max-width: 600px; }
+    button { padding: 0.4rem 0.8rem; border-radius: 4px; border: none; cursor: pointer; background: #2563eb; color: white; }
+    button:hover { background: #1d4ed8; }
+    pre { background: #111827; color: #e5e7eb; padding: 0.75rem; border-radius: 6px; font-size: 0.85rem; overflow-x: auto; }
+    label { display: block; margin-top: 0.75rem; font-weight: 600; }
+    input { width: 100%; padding: 0.35rem; margin-top: 0.25rem; border-radius: 4px; border: 1px solid #cbd5f5; }
+  </style>
+</head>
+<body>
+  <h1>FoodShare OKC – Local Test</h1>
+  <p>This page talks to your local API at <code>http://localhost:3000</code>.</p>
+
+  <div class="card">
+    <h2>1. Check API health</h2>
+    <button id="healthBtn">Run health check</button>
+    <pre id="healthOutput">// click "Run health check"</pre>
+  </div>
+
+  <div class="card" style="margin-top: 1rem;">
+    <h2>2. Create a test user (coming soon)</h2>
+    <p>We’ll wire this up after confirming the basics.</p>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:3000';
+
+    document.getElementById('healthBtn').addEventListener('click', async () => {
+      const out = document.getElementById('healthOutput');
+      out.textContent = 'Checking...';
+      try {
+        const res = await fetch(`${API_BASE}/api/health`);
+        const data = await res.json();
+        out.textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        out.textContent = 'Error: ' + err.message;
+      }
+    });
+  </script>
+</body>
+</html>
