@@ -13,7 +13,7 @@
     <div style="text-align: center; padding: 3rem 0;">
       <h1 style="font-size: 3rem; margin-bottom: 0.5rem;">🍊 FoodShare OKC</h1>
       <p style="font-size: 1.25rem; color: var(--fs-gray-600);">
-        Your neighborhood food- `await.<br/>
+        Your neighborhood food-sharing network.<br/>
         Fresh. Local. Kind.
       </p>
     </div>
@@ -29,10 +29,10 @@
         🍎 Find food near me
       </button>
       
-      <button class="btn-driven)
-- Mais efboarding('driver')">
-        🚗 Volunteer to connect neighbors
-      </button>
+      <button class="btn btn--outline btn--full" onclick="startOnboarding('driver')">
+  🚗 Volunteer to connect neighbors
+</button>
+
     </div>
 
     <p class="text-center text-muted" style="font-size: 0.875rem;">
@@ -189,8 +189,6 @@
         <p class="empty-state__title">No trips available yet</p>
         <p class="empty-state__text">We'll notify you when food needs connecting!</p>
       </div>
-    </div>
-  </div>
 
 <!-- Profile View -->
 <div id="profileView" style="display: none; margin-top: 2rem;">
@@ -285,6 +283,11 @@
       }
     });
 
+    <div>
+  </div>
+
+
+
     // Welcome screen functions
     function startOnboarding(role) {
       document.getElementById('welcomeScreen').style.display = 'none';
@@ -317,38 +320,27 @@
     }
 
     // Show dashboard after login/signup
-    function showDashboard() {
-      function hideAllViews() {
-  document.getElementById('giverView').style.display = 'none';
-  document.getElementById('receiverView').style.display = 'none';
-  document.getElementById('driverView').style.display = 'none';
-  document.getElementById('profileView').style.display = 'none';
-}
-
-
-      document.getElementById('onboardingScreen').style.display = 'none';
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('dashboardScreen').style.display = 'block';
-
-      document.getElementById('navGreeting').textContent = `Hi ${currentUser.display_name}! 👋`;
-      
-function showProfile() {
-  hideAllViews();
+// Show dashboard after login/signup
+function showDashboard() {
+  document.getElementById('onboardingScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('dashboardScreen').style.display = 'block';
-  loadProfile();
+
+  document.getElementById('navGreeting').textContent = `Hi ${currentUser.display_name}! 👋`;
+
+  hideAllViews();
+
+  // Show appropriate view based on role
+  if (currentUser.role === 'giver') {
+    document.getElementById('giverView').style.display = 'block';
+  } else if (currentUser.role === 'receiver') {
+    document.getElementById('receiverView').style.display = 'block';
+    loadAvailableListings();
+  } else if (currentUser.role === 'driver') {
+    document.getElementById('driverView').style.display = 'block';
+  }
 }
 
-      
-      // Show appropriate view based on role
-      if (currentUser.role === 'giver') {
-        document.getElementById('giverView').style.display = 'block';
-      } else if (currentUser.role === 'receiver') {
-        document.getElementById('receiverView').style.display = 'block';
-        loadAvailableListings();
-      } else if (currentUser.role === 'driver') {
-        document.getElementById('driverView').style.display = 'block';
-      }
-    }
 
     // Login form submission
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
