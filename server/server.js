@@ -293,6 +293,43 @@ app.get('/api/listings/:id', async (req, res) => {
   }
 });
 
+// Login endpoint
+app.post('/api/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    // Find user by email
+    const result = await pool.query(
+      'SELECT id, email, display_name, zip_code, lat, lng, password_hash FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    const user = result.rows[0];
+
+    // Check password
+    const validPassword = await bcrypt.compare(password, user.password_hash);
+    
+    if (!validPassword) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    // Don't send password_hash back to client
+    delete user.password_hash;
+
+    res.json({ user });
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 // Start the server
 app.listen(PORT, () => {
