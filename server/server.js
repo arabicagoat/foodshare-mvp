@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const { Pool } = require('pg');
+const bcrypt = require('bcryptjs');
 
 // Load environment variables from .env
 dotenv.config();
@@ -27,6 +28,48 @@ app.get('/api/health', async (req, res) => {
   } catch (err) {
     console.error('Health check error:', err);  // <-- this will show details in Terminal
     res.status(500).json({ ok: false, error: 'Database error' });
+  }
+});
+
+const bcrypt = require('bcryptjs');
+
+// Helper: basic email validation
+function isValidEmail(email) {
+  return typeof email === 'string' && email.includes('@');
+}
+
+// Sign-up endpoint
+app.post('/api/signup', async (req, res) => {
+  try {
+    const { email, password, display_name, zip_code, lat, lng } = req.body;
+
+    if (!email || !password || !display_name) {
+      return res.status(400).json({ error: 'email, password, and display_name are required' });
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    // Check if user already exists
+    const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    if (existing.rows.length > 0) {
+      return res.status(409).json({ error: 'A user with that email already exists' });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    const result = await pool.query(
+      `INSERT INTO users (email, password_hash, display_name, zip_code, lat, lng)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, email, display_name, zip_code, lat, lng, created_at`,
+      [email, hashed, display_name, zip_code || null, lat || null, lng || null]
+    );
+
+    res.status(201).json({ user: result.rows[0] });
+  } catch (err) {
+    console.error('Signup error:', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
