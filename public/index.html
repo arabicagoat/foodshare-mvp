@@ -2,98 +2,371 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>FoodShare OKC – MVP</title>
-  <style>
-    body { font-family: system-ui, -apple-system, sans-serif; margin: 2rem; background: #f7fafc; }
-    h1 { margin-bottom: 0.5rem; }
-    .card { background: white; padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); max-width: 600px; }
-    button { padding: 0.4rem 0.8rem; border-radius: 4px; border: none; cursor: pointer; background: #2563eb; color: white; }
-    button:hover { background: #1d4ed8; }
-    pre { background: #111827; color: #e5e7eb; padding: 0.75rem; border-radius: 6px; font-size: 0.85rem; overflow-x: auto; }
-    label { display: block; margin-top: 0.75rem; font-weight: 600; }
-    input { width: 100%; padding: 0.35rem; margin-top: 0.25rem; border-radius: 4px; border: 1px solid #cbd5f5; }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FoodShare OKC - Share Food, Build Community</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>FoodShare OKC – Local Test</h1>
-  <p>This page talks to your local API at <code>http://localhost:3000</code>.</p>
+  
+  <!-- Welcome Screen -->
+  <div id="welcomeScreen" class="container">
+    <div style="text-align: center; padding: 3rem 0;">
+      <h1 style="font-size: 3rem; margin-bottom: 0.5rem;">🍊 FoodShare OKC</h1>
+      <p style="font-size: 1.25rem; color: var(--fs-gray-600);">
+        Your neighborhood food-sharing network.<br/>
+        Fresh. Local. Kind.
+      </p>
+    </div>
 
-  <div class="card">
-    <h2>1. Check API health</h2>
-    <button id="healthBtn">Run health check</button>
-    <pre id="healthOutput">// click "Run health check"</pre>
+    <div class="card">
+      <h2 class="text-center">I want to...</h2>
+      
+      <button class="btn btn--primary btn--full" onclick="startOnboarding('giver')" style="margin-bottom: 1rem;">
+        🥖 Share food I have
+      </button>
+      
+      <button class="btn btn--secondary btn--full" onclick="startOnboarding('receiver')" style="margin-bottom: 1rem;">
+        🍎 Find food near me
+      </button>
+      
+      <button class="btn btn--outline btn--full" onclick="startOnboarding('driver')">
+        🚗 Volunteer to connect neighbors
+      </button>
+    </div>
+
+    <p class="text-center text-muted" style="font-size: 0.875rem;">
+      Already have an account? <a href="#" onclick="showLogin(); return false;" style="color: var(--fs-teal);">Sign in</a>
+    </p>
   </div>
 
-  <div class="card" style="margin-top: 1rem;">
-  <h2>2. Create a test user</h2>
+  <!-- Onboarding Form (hidden initially) -->
+  <div id="onboardingScreen" class="container" style="display: none;">
+    <button onclick="backToWelcome()" style="background: none; border: none; color: var(--fs-teal); font-size: 1rem; cursor: pointer; margin-bottom: 1rem;">
+      ← Back
+    </button>
 
-  <label>
-    Email
-    <input id="signupEmail" type="email" placeholder="you@example.com" />
-  </label>
+    <div class="card">
+      <h2 id="onboardingTitle">Create your account</h2>
+      
+      <form id="onboardingForm">
+        <div class="form-group">
+          <label class="form-label">Your name</label>
+          <input type="text" id="displayName" class="form-input" placeholder="Jane Neighbor" required />
+        </div>
 
-  <label>
-    Password
-    <input id="signupPassword" type="password" placeholder="••••••••" />
-  </label>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" id="email" class="form-input" placeholder="you@example.com" required />
+        </div>
 
-  <label>
-    Display name
-    <input id="signupName" type="text" placeholder="Neighbor in OKC" />
-  </label>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" id="password" class="form-input" placeholder="••••••••" required />
+        </div>
 
-  <label>
-    ZIP code (optional)
-    <input id="signupZip" type="text" placeholder="73101" />
-  </label>
+        <div class="form-group">
+          <label class="form-label">ZIP code</label>
+          <input type="text" id="zipCode" class="form-input" placeholder="73101" required />
+        </div>
 
-  <button id="signupBtn" style="margin-top: 0.75rem;">Create user</button>
+        <input type="hidden" id="userRole" value="" />
 
-  <pre id="signupOutput">// fill the form and click "Create user"</pre>
-</div>
+        <button type="submit" class="btn btn--primary btn--full">
+          Create my account 🎉
+        </button>
+      </form>
 
-      <script>
+      <div id="onboardingResult" style="margin-top: 1rem; padding: 1rem; border-radius: 8px; display: none;"></div>
+    </div>
+  </div>
+
+  <!-- Main Dashboard (hidden initially) -->
+  <div id="dashboardScreen" class="container" style="display: none;">
+    <div class="nav">
+      <div class="nav__brand">FoodShare</div>
+      <div class="nav__links">
+        <a href="#" class="nav__link" id="navGreeting">Hi there!</a>
+        <a href="#" onclick="logout(); return false;" class="nav__link">Logout</a>
+      </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="stats">
+      <div class="stat">
+        <span class="stat__number" id="statMeals">0</span>
+        <span class="stat__label">Meals shared</span>
+      </div>
+      <div class="stat">
+        <span class="stat__number" id="statPounds">0</span>
+        <span class="stat__label">Pounds rescued</span>
+      </div>
+    </div>
+
+    <!-- Giver View -->
+    <div id="giverView" style="display: none;">
+      <div class="card card--highlight">
+        <h2>Share food now</h2>
+        <form id="postFoodForm">
+          <div class="form-group">
+            <label class="form-label">What do you have?</label>
+            <input type="text" id="foodTitle" class="form-input" placeholder="e.g., Sourdough loaves, Fresh tomatoes, Pizza slices" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tell us more</label>
+            <textarea id="foodDescription" class="form-textarea" placeholder="Quantity, when to pick up, any special details..." required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Pickup location (optional)</label>
+            <input type="text" id="pickupLocation" class="form-input" placeholder="e.g., Front porch, Restaurant back door" />
+          </div>
+
+          <button type="submit" class="btn btn--primary btn--full">
+            Post this food 🎉
+          </button>
+        </form>
+      </div>
+
+      <h3>Your active listings</h3>
+      <div id="myListings">
+        <div class="empty-state">
+          <div class="empty-state__emoji">📦</div>
+          <p class="empty-state__title">No active listings yet</p>
+          <p class="empty-state__text">Post your first food share above!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Receiver View -->
+    <div id="receiverView" style="display: none;">
+      <h2>🍊 Fresh food available near you</h2>
+      <div id="availableListings">
+        <div class="empty-state">
+          <div class="empty-state__emoji">🔍</div>
+          <p class="empty-state__title">No food available right now</p>
+          <p class="empty-state__text">Check back soon! New shares appear throughout the day.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Driver View -->
+    <div id="driverView" style="display: none;">
+      <h2>🚗 Available trips today</h2>
+      <div class="empty-state">
+        <div class="empty-state__emoji">✨</div>
+        <p class="empty-state__title">No trips available yet</p>
+        <p class="empty-state__text">We'll notify you when food needs connecting!</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
     const API_BASE = 'http://localhost:3000';
+    let currentUser = null;
 
-    // Health check button
-    document.getElementById('healthBtn').addEventListener('click', async () => {
-      const out = document.getElementById('healthOutput');
-      out.textContent = 'Checking...';
-      try {
-        const res = await fetch(`${API_BASE}/api/health`);
-        const data = await res.json();
-        out.textContent = JSON.stringify(data, null, 2);
-      } catch (err) {
-        out.textContent = 'Error: ' + err.message;
-      }
-    });
+    // Welcome screen functions
+    function startOnboarding(role) {
+      document.getElementById('welcomeScreen').style.display = 'none';
+      document.getElementById('onboardingScreen').style.display = 'block';
+      document.getElementById('userRole').value = role;
+      
+      const titles = {
+        giver: '🥖 Share food you have',
+        receiver: '🍎 Find food near you',
+        driver: '🚗 Volunteer as a connector'
+      };
+      document.getElementById('onboardingTitle').textContent = titles[role];
+    }
 
-    // Sign-up button
-    const signupBtn = document.getElementById('signupBtn');
-    const signupOutput = document.getElementById('signupOutput');
+    function backToWelcome() {
+      document.getElementById('onboardingScreen').style.display = 'none';
+      document.getElementById('welcomeScreen').style.display = 'block';
+      document.getElementById('onboardingForm').reset();
+      document.getElementById('onboardingResult').style.display = 'none';
+    }
 
-    signupBtn.addEventListener('click', async () => {
-      const email = document.getElementById('signupEmail').value.trim();
-      const password = document.getElementById('signupPassword').value;
-      const display_name = document.getElementById('signupName').value.trim();
-      const zip_code = document.getElementById('signupZip').value.trim();
+    function showLogin() {
+      alert('Login flow coming soon! For now, just create a new account.');
+    }
 
-      signupOutput.textContent = 'Creating user...';
+    // Onboarding form submission
+    document.getElementById('onboardingForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const resultDiv = document.getElementById('onboardingResult');
+      resultDiv.style.display = 'block';
+      resultDiv.style.background = '#FFF9E6';
+      resultDiv.textContent = 'Creating your account...';
+
+      const userData = {
+        email: document.getElementById('email').value.trim(),
+        password: document.getElementById('password').value,
+        display_name: document.getElementById('displayName').value.trim(),
+        zip_code: document.getElementById('zipCode').value.trim(),
+        role: document.getElementById('userRole').value
+      };
 
       try {
         const res = await fetch(`${API_BASE}/api/signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, display_name, zip_code })
+          body: JSON.stringify(userData)
         });
 
         const data = await res.json();
-        signupOutput.textContent = JSON.stringify(data, null, 2);
+
+        if (res.ok) {
+          currentUser = data.user;
+          currentUser.role = userData.role; // Store role client-side for now
+          
+          resultDiv.style.background = '#DEF7E5';
+          resultDiv.textContent = '✅ Account created! Loading your dashboard...';
+          
+          setTimeout(() => showDashboard(), 1500);
+        } else {
+          resultDiv.style.background = '#FFE5D9';
+          resultDiv.textContent = '❌ ' + (data.error || 'Something went wrong');
+        }
       } catch (err) {
-        signupOutput.textContent = 'Error: ' + err.message;
+        resultDiv.style.background = '#FFE5D9';
+        resultDiv.textContent = '❌ Error: ' + err.message;
       }
     });
+
+    // Show dashboard after signup
+    function showDashboard() {
+      document.getElementById('onboardingScreen').style.display = 'none';
+      document.getElementById('dashboardScreen').style.display = 'block';
+      
+      document.getElementById('navGreeting').textContent = `Hi ${currentUser.display_name}! 👋`;
+      
+      // Show appropriate view based on role
+      if (currentUser.role === 'giver') {
+        document.getElementById('giverView').style.display = 'block';
+      } else if (currentUser.role === 'receiver') {
+        document.getElementById('receiverView').style.display = 'block';
+        loadAvailableListings();
+      } else if (currentUser.role === 'driver') {
+        document.getElementById('driverView').style.display = 'block';
+      }
+    }
+
+    // Post food form (giver)
+    document.getElementById('postFoodForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const listingData = {
+        user_id: currentUser.id,
+        title: document.getElementById('foodTitle').value.trim(),
+        description: document.getElementById('foodDescription').value.trim(),
+        pickup_location: document.getElementById('pickupLocation').value.trim(),
+        lat: null, // TODO: geocode ZIP later
+        lng: null
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/api/listings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(listingData)
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          alert('🎉 Your food is now live! Neighbors can see it.');
+          document.getElementById('postFoodForm').reset();
+          loadMyListings();
+        } else {
+          alert('Error: ' + (data.error || 'Could not post listing'));
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    });
+
+    // Load my listings (giver)
+    async function loadMyListings() {
+      try {
+        const res = await fetch(`${API_BASE}/api/listings/my/${currentUser.id}`);
+        const data = await res.json();
+
+        const container = document.getElementById('myListings');
+        
+        if (data.listings && data.listings.length > 0) {
+          container.innerHTML = data.listings.map(listing => `
+            <div class="food-card">
+              <div class="food-card__header">
+                <h3 class="food-card__title">${listing.title}</h3>
+                <span class="badge badge--available">${listing.status}</span>
+              </div>
+              <p class="food-card__meta">Posted ${new Date(listing.created_at).toLocaleString()}</p>
+              <p class="food-card__description">${listing.description}</p>
+            </div>
+          `).join('');
+        } else {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state__emoji">📦</div>
+              <p class="empty-state__title">No active listings yet</p>
+            </div>
+          `;
+        }
+      } catch (err) {
+        console.error('Error loading listings:', err);
+      }
+    }
+
+    // Load available listings (receiver)
+    async function loadAvailableListings() {
+      try {
+        const res = await fetch(`${API_BASE}/api/listings`);
+        const data = await res.json();
+
+        const container = document.getElementById('availableListings');
+        
+        if (data.listings && data.listings.length > 0) {
+          container.innerHTML = data.listings.map(listing => `
+            <div class="food-card">
+              <div class="food-card__header">
+                <div>
+                  <h3 class="food-card__title">${listing.title}</h3>
+                  <p class="food-card__meta">
+                    Posted by ${listing.display_name} • ${listing.zip_code}
+                  </p>
+                </div>
+                <div class="food-card__emoji">🍊</div>
+              </div>
+              <p class="food-card__description">${listing.description}</p>
+              ${listing.pickup_location ? `<p class="text-muted">📍 ${listing.pickup_location}</p>` : ''}
+              <button class="btn btn--primary" onclick="requestFood(${listing.id})">
+                Request pickup
+              </button>
+            </div>
+          `).join('');
+        } else {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state__emoji">🔍</div>
+              <p class="empty-state__title">No food available right now</p>
+            </div>
+          `;
+        }
+      } catch (err) {
+        console.error('Error loading listings:', err);
+      }
+    }
+
+    function requestFood(listingId) {
+      alert(`Message feature coming next! For now, text/call the poster directly. Listing ID: ${listingId}`);
+    }
+
+    function logout() {
+      currentUser = null;
+      document.getElementById('dashboardScreen').style.display = 'none';
+      document.getElementById('welcomeScreen').style.display = 'block';
+    }
   </script>
 </body>
 </html>
-
