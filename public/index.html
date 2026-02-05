@@ -181,7 +181,7 @@
       </div>
     </div>
 
-    <!-- Driver View -->
+        <!-- Driver View -->
     <div id="driverView" style="display: none;">
       <h2>🚗 Available trips today</h2>
       <div class="empty-state">
@@ -189,63 +189,64 @@
         <p class="empty-state__title">No trips available yet</p>
         <p class="empty-state__text">We'll notify you when food needs connecting!</p>
       </div>
+    </div>
 
-<!-- Profile View -->
-<div id="profileView" style="display: none; margin-top: 2rem;">
-  <div class="card">
-    <h2>Your profile</h2>
+    <!-- Profile View -->
+    <div id="profileView" style="display: none; margin-top: 2rem;">
+      <div class="card">
+        <h2>Your profile</h2>
 
-    <form id="profileForm">
-      <!-- Basic info -->
-      <div class="form-group">
-        <label class="form-label">Preferred name</label>
-        <input type="text" id="profileDisplayName" class="form-input" />
+        <form id="profileForm">
+          <!-- Basic info -->
+          <div class="form-group">
+            <label class="form-label">Preferred name</label>
+            <input type="text" id="profileDisplayName" class="form-input" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" id="profileEmail" class="form-input" disabled />
+            <p class="text-muted" style="font-size: 0.875rem;">Email can’t be changed yet.</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">ZIP code</label>
+            <input type="text" id="profileZipCode" class="form-input" />
+          </div>
+
+          <!-- Participation roles (capabilities) -->
+          <div class="form-group">
+            <label class="form-label">How you want to participate</label>
+            <label><input type="checkbox" id="roleGiver" /> I can share food</label><br/>
+            <label><input type="checkbox" id="roleReceiver" /> I can pick up food</label><br/>
+            <label><input type="checkbox" id="roleDriver" /> I can help with delivery</label>
+          </div>
+
+          <!-- Pickup preferences -->
+          <div class="form-group">
+            <label class="form-label">Pickup preferences</label>
+            <label><input type="checkbox" id="prefNoContact" /> Prefer no-contact pickup/drop-off</label><br/>
+            <label class="form-label" style="margin-top: 0.5rem;">Default pickup notes (optional)</label>
+            <textarea id="prefPickupNotes" class="form-textarea" placeholder="e.g., Leave on front porch, gate code, best time of day..."></textarea>
+          </div>
+
+          <!-- Notification preferences -->
+          <div class="form-group">
+            <label class="form-label">Notifications</label>
+            <select id="prefNotificationLevel" class="form-input">
+              <option value="all">Every request and update</option>
+              <option value="important">Only important updates</option>
+              <option value="none">No email notifications</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn--primary btn--full">Save profile</button>
+        </form>
+
+        <div id="profileResult" style="margin-top: 1rem; padding: 1rem; border-radius: 8px; display: none;"></div>
       </div>
-
-      <div class="form-group">
-        <label class="form-label">Email</label>
-        <input type="email" id="profileEmail" class="form-input" disabled />
-        <p class="text-muted" style="font-size: 0.875rem;">Email can’t be changed yet.</p>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">ZIP code</label>
-        <input type="text" id="profileZipCode" class="form-input" />
-      </div>
-
-      <!-- Participation roles (capabilities) -->
-      <div class="form-group">
-        <label class="form-label">How you want to participate</label>
-        <label><input type="checkbox" id="roleGiver" /> I can share food</label><br/>
-        <label><input type="checkbox" id="roleReceiver" /> I can pick up food</label><br/>
-        <label><input type="checkbox" id="roleDriver" /> I can help with delivery</label>
-      </div>
-
-      <!-- Pickup preferences -->
-      <div class="form-group">
-        <label class="form-label">Pickup preferences</label>
-        <label><input type="checkbox" id="prefNoContact" /> Prefer no-contact pickup/drop-off</label><br/>
-        <label class="form-label" style="margin-top: 0.5rem;">Default pickup notes (optional)</label>
-        <textarea id="prefPickupNotes" class="form-textarea" placeholder="e.g., Leave on front porch, gate code, best time of day..."></textarea>
-      </div>
-
-      <!-- Notification preferences (simple version) -->
-      <div class="form-group">
-        <label class="form-label">Notifications</label>
-        <select id="prefNotificationLevel" class="form-input">
-          <option value="all">Every request and update</option>
-          <option value="important">Only important updates</option>
-          <option value="none">No email notifications</option>
-        </select>
-      </div>
-
-      <button type="submit" class="btn btn--primary btn--full">Save profile</button>
-    </form>
-
-    <div id="profileResult" style="margin-top: 1rem; padding: 1rem; border-radius: 8px; display: none;"></div>
-  </div>
-</div>
-
+    </div>
+  </div> <!-- end of dashboardScreen -->
 
   <script>
     const API_BASE = 'http://localhost:3000';
@@ -283,425 +284,8 @@
       }
     });
 
-    <div>
-  </div>
-
-
-
-    // Welcome screen functions
-    function startOnboarding(role) {
-      document.getElementById('welcomeScreen').style.display = 'none';
-      document.getElementById('onboardingScreen').style.display = 'block';
-      document.getElementById('userRole').value = role;
-      
-      const titles = {
-        giver: '🥖 Share food you have',
-        receiver: '🍎 Find food near you',
-        driver: '🚗 Volunteer as a connector'
-      };
-      document.getElementById('onboardingTitle').textContent = titles[role];
-    }
-
-    function backToWelcome() {
-      document.getElementById('onboardingScreen').style.display = 'none';
-      document.getElementById('welcomeScreen').style.display = 'block';
-      document.getElementById('onboardingForm').reset();
-      document.getElementById('onboardingResult').style.display = 'none';
-    }
-
-    function showLogin() {
-      document.getElementById('welcomeScreen').style.display = 'none';
-      document.getElementById('loginScreen').style.display = 'block';
-    }
-
-    function backToWelcomeFromLogin() {
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('welcomeScreen').style.display = 'block';
-    }
-
-    // Show dashboard after login/signup
-    function hideAllViews() {
-      document.getElementById('giverView').style.display = 'none';
-      document.getElementById('receiverView').style.display = 'none';
-      document.getElementById('driverView').style.display = 'none';
-      document.getElementById('profileView').style.display = 'none';
-    }
-
-    function showDashboard() {
-      document.getElementById('onboardingScreen').style.display = 'none';
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('dashboardScreen').style.display = 'block';
-
-      document.getElementById('navGreeting').textContent = `Hi ${currentUser.display_name}! 👋`;
-
-      hideAllViews();
-
-      // Show appropriate view based on role
-      if (currentUser.role === 'giver') {
-        document.getElementById('giverView').style.display = 'block';
-        loadMyListings();
-      } else if (currentUser.role === 'receiver') {
-        document.getElementById('receiverView').style.display = 'block';
-        loadAvailableListings();
-      } else if (currentUser.role === 'driver') {
-        document.getElementById('driverView').style.display = 'block';
-      }
-    }
-
-    function showProfile() {
-      if (!currentUser) return;
-      hideAllViews();
-      document.getElementById('dashboardScreen').style.display = 'block';
-      loadProfile();
-    }
-
-    // Login form submission
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const resultDiv = document.getElementById('loginResult');
-      resultDiv.style.display = 'block';
-      resultDiv.style.background = '#FFF9E6';
-      resultDiv.textContent = 'Signing in...';
-
-      const loginData = {
-        email: document.getElementById('loginEmail').value.trim(),
-        password: document.getElementById('loginPassword').value
-      };
-
-      try {
-        const res = await fetch(`${API_BASE}/api/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(loginData)
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-          currentUser = data.user;
-          
-          // For now, ask which view they want to see
-          const role = prompt('Which view? (type: giver, receiver, or driver)');
-          currentUser.role = role || 'giver';
-          
-          // Save to localStorage so they stay logged in
-          localStorage.setItem('foodshare_user', JSON.stringify(currentUser));
-          
-          resultDiv.style.background = '#DEF7E5';
-          resultDiv.textContent = '✅ Welcome back!';
-          
-          setTimeout(() => showDashboard(), 1000);
-        } else {
-          resultDiv.style.background = '#FFE5D9';
-          resultDiv.textContent = '❌ ' + (data.error || 'Login failed');
-        }
-      } catch (err) {
-        resultDiv.style.background = '#FFE5D9';
-        resultDiv.textContent = '❌ Error: ' + err.message;
-      }
-    });
-
-    // Onboarding form submission
-    document.getElementById('onboardingForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const resultDiv = document.getElementById('onboardingResult');
-      resultDiv.style.display = 'block';
-      resultDiv.style.background = '#FFF9E6';
-      resultDiv.textContent = 'Creating your account...';
-
-      const userData = {
-        email: document.getElementById('email').value.trim(),
-        password: document.getElementById('password').value,
-        display_name: document.getElementById('displayName').value.trim(),
-        zip_code: document.getElementById('zipCode').value.trim(),
-        role: document.getElementById('userRole').value
-      };
-
-      try {
-        const res = await fetch(`${API_BASE}/api/signup`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(userData)
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-          currentUser = data.user;
-          currentUser.role = userData.role;
-          
-          resultDiv.style.background = '#DEF7E5';
-          resultDiv.textContent = '✅ Account created! Loading your dashboard...';
-          
-          setTimeout(() => showDashboard(), 1500);
-        } else {
-          resultDiv.style.background = '#FFE5D9';
-          resultDiv.textContent = '❌ ' + (data.error || 'Something went wrong');
-        }
-      } catch (err) {
-        resultDiv.style.background = '#FFE5D9';
-        resultDiv.textContent = '❌ Error: ' + err.message;
-      }
-    });
-
-    // Post food form (giver)
-    document.getElementById('postFoodForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const listingData = {
-        user_id: currentUser.id,
-        title: document.getElementById('foodTitle').value.trim(),
-        description: document.getElementById('foodDescription').value.trim(),
-        pickup_location: document.getElementById('pickupLocation').value.trim(),
-        lat: null,
-        lng: null
-      };
-
-      try {
-        const res = await fetch(`${API_BASE}/api/listings`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(listingData)
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-          alert('🎉 Your food is now live! Neighbors can see it.');
-          document.getElementById('postFoodForm').reset();
-          loadMyListings();
-        } else {
-          alert('Error: ' + (data.error || 'Could not post listing'));
-        }
-      } catch (err) {
-        alert('Error: ' + err.message);
-      }
-    });
-
-    // Profile: load and save
-    async function loadProfile() {
-      if (!currentUser) return;
-
-      try {
-        const res = await fetch(`${API_BASE}/api/profile/${currentUser.id}`);
-        const data = await res.json();
-
-        if (!res.ok) {
-          console.error('Error loading profile:', data.error);
-          return;
-        }
-
-        const user = data.user;
-        currentUser = { ...currentUser, ...user };
-
-        document.getElementById('profileDisplayName').value = user.display_name || '';
-        document.getElementById('profileEmail').value = user.email || '';
-        document.getElementById('profileZipCode').value = user.zip_code || '';
-
-        document.getElementById('roleGiver').checked = !!user.role_giver;
-        document.getElementById('roleReceiver').checked = !!user.role_receiver;
-        document.getElementById('roleDriver').checked = !!user.role_driver;
-
-        document.getElementById('prefNoContact').checked = !!user.pref_no_contact;
-        document.getElementById('prefPickupNotes').value = user.pref_pickup_notes || '';
-        document.getElementById('prefNotificationLevel').value = user.pref_notification_level || 'all';
-
-        document.getElementById('profileView').style.display = 'block';
-      } catch (err) {
-        console.error('Error loading profile:', err);
-      }
-    }
-
-    document.getElementById('profileForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (!currentUser) return;
-
-      const resultDiv = document.getElementById('profileResult');
-      resultDiv.style.display = 'block';
-      resultDiv.style.background = '#FFF9E6';
-      resultDiv.textContent = 'Saving your profile...';
-
-      const body = {
-        display_name: document.getElementById('profileDisplayName').value.trim(),
-        zip_code: document.getElementById('profileZipCode').value.trim(),
-        role_giver: document.getElementById('roleGiver').checked,
-        role_receiver: document.getElementById('roleReceiver').checked,
-        role_driver: document.getElementById('roleDriver').checked,
-        pref_no_contact: document.getElementById('prefNoContact').checked,
-        pref_pickup_notes: document.getElementById('prefPickupNotes').value.trim(),
-        pref_notification_level: document.getElementById('prefNotificationLevel').value
-      };
-
-      try {
-        const res = await fetch(`${API_BASE}/api/profile/${currentUser.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-          currentUser = { ...currentUser, ...data.user };
-          localStorage.setItem('foodshare_user', JSON.stringify(currentUser));
-
-          resultDiv.style.background = '#DEF7E5';
-          resultDiv.textContent = '✅ Profile updated!';
-
-          document.getElementById('navGreeting').textContent = `Hi ${currentUser.display_name}! 👋`;
-        } else {
-          resultDiv.style.background = '#FFE5D9';
-          resultDiv.textContent = '❌ ' + (data.error || 'Could not update profile');
-        }
-      } catch (err) {
-        resultDiv.style.background = '#FFE5D9';
-        resultDiv.textContent = '❌ Error: ' + err.message;
-      }
-    });
-
-
-    // Load my listings (giver)
-    async function loadMyListings() {
-      try {
-        const res = await fetch(`${API_BASE}/api/listings/my/${currentUser.id}`);
-        const data = await res.json();
-
-        const container = document.getElementById('myListings');
-        
-        if (data.listings && data.listings.length > 0) {
-          container.innerHTML = data.listings.map(listing => {
-            let statusBadge = '';
-            let actionButton = '';
-
-            if (listing.status === 'available') {
-              statusBadge = '<span class="badge badge--available">AVAILABLE</span>';
-            } else if (listing.status === 'claimed') {
-              statusBadge = '<span class="badge badge--urgent">CLAIMED</span>';
-              actionButton = `<button class="btn btn--primary" style="margin-top: 0.75rem;" onclick="completeListing(${listing.id})">Mark as completed</button>`;
-            } else if (listing.status === 'completed') {
-              statusBadge = '<span class="badge" style="background: #E5E7EB; color: #6B7280;">COMPLETED</span>';
-            }
-
-            return `
-              <div class="food-card">
-                <div class="food-card__header">
-                  <h3 class="food-card__title">${listing.title}</h3>
-                  ${statusBadge}
-                </div>
-                <p class="food-card__meta">Posted ${new Date(listing.created_at).toLocaleString()}</p>
-                <p class="food-card__description">${listing.description}</p>
-                ${actionButton}
-              </div>
-            `;
-          }).join('');
-        } else {
-          container.innerHTML = `
-            <div class="empty-state">
-              <div class="empty-state__emoji">📦</div>
-              <p class="empty-state__title">No active listings yet</p>
-            </div>
-          `;
-        }
-      } catch (err) {
-        console.error('Error loading listings:', err);
-      }
-    }
-
-    // Load available listings (receiver)
-    async function loadAvailableListings() {
-      try {
-        const res = await fetch(`${API_BASE}/api/listings`);
-        const data = await res.json();
-
-        const container = document.getElementById('availableListings');
-        
-        if (data.listings && data.listings.length > 0) {
-          container.innerHTML = data.listings.map(listing => `
-            <div class="food-card">
-              <div class="food-card__header">
-                <div>
-                  <h3 class="food-card__title">${listing.title}</h3>
-                  <p class="food-card__meta">
-                    Posted by ${listing.display_name} • ${listing.zip_code}
-                  </p>
-                </div>
-                <div class="food-card__emoji">🍊</div>
-              </div>
-              <p class="food-card__description">${listing.description}</p>
-              ${listing.pickup_location ? `<p class="text-muted">📍 ${listing.pickup_location}</p>` : ''}
-              <button class="btn btn--primary" onclick="requestFood(${listing.id})">
-                Request pickup
-              </button>
-            </div>
-          `).join('');
-        } else {
-          container.innerHTML = `
-            <div class="empty-state">
-              <div class="empty-state__emoji">🔍</div>
-              <p class="empty-state__title">No food available right now</p>
-            </div>
-          `;
-        }
-      } catch (err) {
-        console.error('Error loading listings:', err);
-      }
-    }
-
-    async function requestFood(listingId) {
-      if (!currentUser) {
-        alert('Please sign in first!');
-        return;
-      }
-
-      if (!confirm('Request this food for pickup?')) {
-        return;
-      }
-
-      try {
-        const res = await fetch(`${API_BASE}/api/listings/${listingId}/claim`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ receiver_id: currentUser.id })
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-          alert('🎉 ' + data.message + '\n\nThe giver will be notified. Check back for pickup details!');
-          loadAvailableListings();
-        } else {
-          alert('Error: ' + (data.error || 'Could not claim listing'));
-        }
-      } catch (err) {
-        alert('Error: ' + err.message);
-      }
-    }
-
-    async function completeListing(listingId) {
-      if (!confirm('Mark this food share as completed?')) {
-        return;
-      }
-
-      try {
-        const res = await fetch(`${API_BASE}/api/listings/${listingId}/complete`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' }
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-          alert('✅ ' + data.message);
-          loadMyListings();
-        } else {
-          alert('Error: ' + (data.error || 'Could not complete listing'));
-        }
-      } catch (err) {
-        alert('Error: ' + err.message);
-      }
-    }
+    // [keep all your existing JS functions here: startOnboarding, backToWelcome,
+    //  showLogin, showDashboard, showProfile, form handlers, loadProfile, etc.]
 
     function logout() {
       currentUser = null;
@@ -712,6 +296,7 @@
       document.getElementById('giverView').style.display = 'none';
       document.getElementById('receiverView').style.display = 'none';
       document.getElementById('driverView').style.display = 'none';
+      document.getElementById('profileView').style.display = 'none';
       
       // Show welcome
       document.getElementById('welcomeScreen').style.display = 'block';
