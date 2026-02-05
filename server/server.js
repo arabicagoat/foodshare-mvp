@@ -58,11 +58,35 @@ app.post('/api/signup', async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
-      `INSERT INTO users (email, password_hash, display_name, zip_code, lat, lng)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id, email, display_name, zip_code, lat, lng, created_at`,
-      [email, hashed, display_name, zip_code || null, lat || null, lng || null]
-    );
+  `INSERT INTO users (
+      email, password_hash, display_name, zip_code, lat, lng,
+      role_giver, role_receiver, role_driver,
+      pref_no_contact, pref_pickup_notes, pref_notification_level
+   )
+   VALUES ($1, $2, $3, $4, $5, $6,
+           $7, $8, $9,
+           $10, $11, $12)
+   RETURNING id, email, display_name, zip_code, lat, lng,
+             role_giver, role_receiver, role_driver,
+             pref_no_contact, pref_pickup_notes, pref_notification_level,
+             created_at`,
+  [
+    email,
+    hashed,
+    display_name,
+    zip_code || null,
+    lat || null,
+    lng || null,
+    // default roles based on signup role field:
+    req.body.role === 'giver',
+    req.body.role === 'receiver' || !req.body.role,
+    req.body.role === 'driver',
+    false,
+    null,
+    'all'
+  ]
+);
+
 
     res.status(201).json({ user: result.rows[0] });
   } catch (err) {
@@ -304,9 +328,15 @@ app.post('/api/login', async (req, res) => {
 
     // Find user by email
     const result = await pool.query(
-      'SELECT id, email, display_name, zip_code, lat, lng, password_hash FROM users WHERE email = $1',
-      [email]
-    );
+  `SELECT id, email, display_name, zip_code, lat, lng,
+          role_giver, role_receiver, role_driver,
+          pref_no_contact, pref_pickup_notes, pref_notification_level,
+          password_hash
+   FROM users
+   WHERE email = $1`,
+  [email]
+);
+
 
     if (result.rows.length === 0) {
       return res.status(401).json({ error: 'Invalid email or password' });
@@ -327,6 +357,83 @@ app.post('/api/login', async (req, res) => {
     res.json({ user });
   } catch (err) {
     console.error('Login error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+// Get current user's profile
+app.get('/api/profile/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      `SELECT id, email, display_name, zip_code, lat, lng,
+              role_giver, role_receiver, role_driver,
+              pref_no_contact, pref_pickup_notes, pref_notification_level
+       FROM users
+       WHERE id = $1`,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ user: result.rows[0] });
+  } catch (err) {
+    console.error('Get profile error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update current user's profile
+app.put('/api/profile/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      display_name,
+      zip_code,
+      role_giver,
+      role_receiver,
+      role_driver,
+      pref_no_contact,
+      pref_pickup_notes,
+      pref_notification_level
+    } = req.body;
+
+    const result = await pool.query(
+      `UPDATE users
+       SET display_name = $1,
+           zip_code = $2,
+           role_giver = $3,
+           role_receiver = $4,
+           role_driver = $5,
+           pref_no_contact = $6,
+           pref_pickup_notes = $7,
+           pref_notification_level = $8
+       WHERE id = $9
+       RETURNING id, email, display_name, zip_code, lat, lng,
+                 role_giver, role_receiver, role_driver,
+                 pref_no_contact, pref_pickup_notes, pref_notification_level`,
+      [
+        display_name,
+        zip_code,
+        role_giver,
+        role_receiver,
+        role_driver,
+        pref_no_contact,
+        pref_pickup_notes,
+        pref_notification_level,
+        id
+      ]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ user: result.rows[0] });
+  } catch (err) {
+    console.error('Update profile error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
