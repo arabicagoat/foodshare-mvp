@@ -44,35 +44,6 @@
     <button onclick="backToWelcome()" style="background: none; border: none; color: var(--fs-teal); font-size: 1rem; cursor: pointer; margin-bottom: 1rem;">
       ← Back
     </button>
-<!-- Login Screen (hidden initially) -->
-<div id="loginScreen" class="container" style="display: none;">
-  <button onclick="backToWelcomeFromLogin()" style="background: none; border: none; color: var(--fs-teal); font-size: 1rem; cursor: pointer; margin-bottom: 1rem;">
-    ← Back
-  </button>
-
-  <div class="card">
-    <h2>Welcome back!</h2>
-    
-    <form id="loginForm">
-      <div class="form-group">
-        <label class="form-label">Email</label>
-        <input type="email" id="loginEmail" class="form-input" placeholder="you@example.com" required />
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Password</label>
-        <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required />
-      </div>
-
-      <button type="submit" class="btn btn--primary btn--full">
-        Sign in
-      </button>
-    </form>
-
-    <div id="loginResult" style="margin-top: 1rem; padding: 1rem; border-radius: 8px; display: none;"></div>
-  </div>
-</div>
-
     <div class="card">
       <h2 id="onboardingTitle">Create your account</h2>
       
@@ -108,8 +79,38 @@
     </div>
   </div>
 
+  <!-- Login Screen (hidden initially) - MOVED OUTSIDE ONBOARDING -->
+  <div id="loginScreen" class="container" style="display: none;">
+    <button onclick="backToWelcomeFromLogin()" style="background: none; border: none; color: var(--fs-teal); font-size: 1rem; cursor: pointer; margin-bottom: 1rem;">
+      ← Back
+    </button>
+
+    <div class="card">
+      <h2>Welcome back!</h2>
+      
+      <form id="loginForm">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" id="loginEmail" class="form-input" placeholder="you@example.com" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required />
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--full">
+          Sign in
+        </button>
+      </form>
+
+      <div id="loginResult" style="margin-top: 1rem; padding: 1rem; border-radius: 8px; display: none;"></div>
+    </div>
+  </div>
+
   <!-- Main Dashboard (hidden initially) -->
   <div id="dashboardScreen" class="container" style="display: none;">
+
     <div class="nav">
       <div class="nav__brand">FoodShare</div>
       <div class="nav__links">
