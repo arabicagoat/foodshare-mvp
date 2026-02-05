@@ -506,6 +506,53 @@ async function loadProfile() {
     console.error('Error loading profile:', err);
   }
 }
+document.getElementById('profileForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!currentUser) return;
+
+  const resultDiv = document.getElementById('profileResult');
+  resultDiv.style.display = 'block';
+  resultDiv.style.background = '#FFF9E6';
+  resultDiv.textContent = 'Saving your profile...';
+
+  const body = {
+    display_name: document.getElementById('profileDisplayName').value.trim(),
+    zip_code: document.getElementById('profileZipCode').value.trim(),
+    role_giver: document.getElementById('roleGiver').checked,
+    role_receiver: document.getElementById('roleReceiver').checked,
+    role_driver: document.getElementById('roleDriver').checked,
+    pref_no_contact: document.getElementById('prefNoContact').checked,
+    pref_pickup_notes: document.getElementById('prefPickupNotes').value.trim(),
+    pref_notification_level: document.getElementById('prefNotificationLevel').value
+  };
+
+  try {
+    const res = await fetch(`${API_BASE}/api/profile/${currentUser.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      currentUser = { ...currentUser, ...data.user };
+      localStorage.setItem('foodshare_user', JSON.stringify(currentUser));
+
+      resultDiv.style.background = '#DEF7E5';
+      resultDiv.textContent = '✅ Profile updated!';
+
+      // Update greeting immediately
+      document.getElementById('navGreeting').textContent = `Hi ${currentUser.display_name}! 👋`;
+    } else {
+      resultDiv.style.background = '#FFE5D9';
+      resultDiv.textContent = '❌ ' + (data.error || 'Could not update profile');
+    }
+  } catch (err) {
+    resultDiv.style.background = '#FFE5D9';
+    resultDiv.textContent = '❌ Error: ' + err.message;
+  }
+});
 
     // Load my listings (giver)
     async function loadMyListings() {
