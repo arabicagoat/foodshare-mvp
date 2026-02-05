@@ -31,8 +31,6 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-const bcrypt = require('bcryptjs');
-
 // Helper: basic email validation
 function isValidEmail(email) {
   return typeof email === 'string' && email.includes('@');
