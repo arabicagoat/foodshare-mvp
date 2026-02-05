@@ -131,6 +131,44 @@
         <span class="stat__number" id="statPounds">0</span>
         <span class="stat__label">Pounds rescued</span>
       </div>
+      <!-- Dashboard Screen -->
+<div id="dashboardScreen" class="screen" style="display: none;">
+  
+  <!-- Existing header content -->
+  
+  <!-- Existing stats section -->
+  <div class="stats">
+    <!-- Your existing stats content -->
+  </div>
+  
+  <!-- ADD THIS NEW TAB NAVIGATION HERE -->
+  <nav class="capability-tabs" id="capabilityTabs">
+    <button class="tab" data-view="giver" id="tabShare">
+      <span class="tab__icon">🤝</span>
+      <span class="tab__label">Share</span>
+    </button>
+    <button class="tab" data-view="receiver" id="tabFind">
+      <span class="tab__icon">🛒</span>
+      <span class="tab__label">Find</span>
+    </button>
+    <button class="tab" data-view="driver" id="tabDeliver">
+      <span class="tab__icon">🚗</span>
+      <span class="tab__label">Deliver</span>
+    </button>
+    <button class="tab" data-view="profile" id="tabProfile">
+      <span class="tab__icon">👤</span>
+      <span class="tab__label">Profile</span>
+    </button>
+  </nav>
+  
+  <!-- Existing views below (giverView, receiverView, etc.) -->
+  <div id="giverView" class="view">...</div>
+  <div id="receiverView" class="view">...</div>
+  <div id="driverView" class="view">...</div>
+  <div id="profileView" class="view">...</div>
+  
+</div>
+
     </div>
 
     <!-- Giver View -->
@@ -291,26 +329,200 @@
     document.getElementById('driverView').style.display = 'none';
     document.getElementById('profileView').style.display = 'none';
   }
+/* ================================
+   TAB NAVIGATION SYSTEM
+   ================================ */
+
+/**
+ * Get the default view based on user's enabled capabilities
+ * Priority: giver > receiver > driver > profile
+ */
+function getDefaultView() {
+  if (!currentUser) return 'profile';
+  
+  if (currentUser.role_giver) return 'giver';
+  if (currentUser.role_receiver) return 'receiver';
+  if (currentUser.role_driver) return 'driver';
+  return 'profile'; // Fallback
+}
+
+/**
+ * Initialize tabs: show/hide based on user capabilities
+ * Called by showDashboard() after login or page load
+ */
+function initializeTabs() {
+  // Get all tab buttons
+  const tabs = document.querySelectorAll('.tab');
+  
+  // Show/hide tabs based on user capabilities
+  tabs.forEach(tab => {
+    const view = tab.dataset.view;
+    
+    // Profile tab always visible
+    if (view === 'profile') {
+      tab.style.display = 'flex';
+      return;
+    }
+    
+    // Check if user has this capability
+    const hasCapability = currentUser[`role_${view}`];
+    
+    if (hasCapability) {
+      tab.style.display = 'flex';
+    } else {
+      tab.style.display = 'none';
+    }
+  });
+  
+  // Get last active view from localStorage, or use default
+  const lastView = localStorage.getItem('foodshare_last_view');
+  const viewToShow = lastView || getDefaultView();
+  
+  // Verify user still has access to saved view
+  const canAccessSavedView = 
+    viewToShow === 'profile' || currentUser[`role_${viewToShow}`];
+  
+  if (canAccessSavedView) {
+    switchCapabilityView(viewToShow);
+  } else {
+    // Saved view no longer available, use default
+    switchCapabilityView(getDefaultView());
+  }
+}
+
+/**
+ * Switch between capability views (Share/Find/Deliver/Profile)
+ * Manages tab active states and content visibility
+ * @param {string} viewName - 'giver', 'receiver', 'driver', or 'profile'
+ */
+function switchCapabilityView(viewName) {
+  // Hide all views
+  const views = ['giverView', 'receiverView', 'driverView', 'profileView'];
+  views.forEach(viewId => {
+    const viewElement = document.getElementById(viewId);
+    if (viewElement) {
+      viewElement.style.display = 'none';
+      viewElement.classList.remove('active');
+    }
+  });
+  
+  // Show selected view
+  const viewMap = {
+    'giver': 'giverView',
+    'receiver': 'receiverView',
+    'driver': 'driverView',
+    'profile': 'profileView'
+  };
+  
+  const viewId = viewMap[viewName];
+  const selectedView = document.getElementById(viewId);
+  
+  if (selectedView) {
+    selectedView.style.display = 'block';
+    selectedView.classList.add('active');
+  }
+  
+  // Update tab button active states
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.classList.remove('active');
+    
+    if (tab.dataset.view === viewName) {
+      tab.classList.add('active');
+    }
+  });
+  
+  // Save to localStorage for persistence
+  localStorage.setItem('foodshare_last_view', viewName);
+  
+  // Update greeting if needed (optional enhancement)
+  updateGreeting(viewName);
+  
+  // Load view-specific data
+  loadViewData(viewName);
+}
+
+/**
+ * Update greeting text based on active view (optional)
+ */
+function updateGreeting(viewName) {
+  const greetingElement = document.getElementById('navGreeting');
+  if (!greetingElement || !currentUser) return;
+  
+  const greetings = {
+    'giver': `Hi ${currentUser.display_name}! 🤝`,
+    'receiver': `Hi ${currentUser.display_name}! 🛒`,
+    'driver': `Hi ${currentUser.display_name}! 🚗`,
+    'profile': `Hi ${currentUser.display_name}! 👤`
+  };
+  
+  greetingElement.textContent = greetings[viewName] || `Hi ${currentUser.display_name}! 👋`;
+}
+
+/**
+ * Load data specific to the active view
+ */
+function loadViewData(viewName) {
+  switch(viewName) {
+    case 'giver':
+      if (typeof loadMyListings === 'function') {
+        loadMyListings();
+      }
+      break;
+    case 'receiver':
+      if (typeof loadAvailableListings === 'function') {
+        loadAvailableListings();
+      }
+      break;
+    case 'driver':
+      if (typeof loadAvailableDeliveries === 'function') {
+        loadAvailableDeliveries();
+      }
+      break;
+    case 'profile':
+      if (typeof loadProfile === 'function') {
+        loadProfile();
+      }
+      break;
+  }
+}
+
+/**
+ * Initialize tab event listeners
+ * Call this once when page loads
+ */
+function initializeTabListeners() {
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', (e) => {
+      const view = e.currentTarget.dataset.view;
+      switchCapabilityView(view);
+    });
+  });
+}
+
+// Initialize listeners on page load
+document.addEventListener('DOMContentLoaded', () => {
+  initializeTabListeners();
+});
 
   function showDashboard() {
-    document.getElementById('onboardingScreen').style.display = 'none';
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('dashboardScreen').style.display = 'block';
-
-    document.getElementById('navGreeting').textContent = `Hi ${currentUser.display_name}! 👋`;
-
-    hideAllViews();
-
-    if (currentUser.role === 'giver') {
-      document.getElementById('giverView').style.display = 'block';
-      loadMyListings();
-    } else if (currentUser.role === 'receiver') {
-      document.getElementById('receiverView').style.display = 'block';
-      loadAvailableListings();
-    } else if (currentUser.role === 'driver') {
-      document.getElementById('driverView').style.display = 'block';
+  // Hide all screens
+  hideAllViews();
+  
+  // Show dashboard screen
+  dashboardScreen.style.display = 'block';
+  
+  // Initialize tab navigation system
+  initializeTabs();
+  
+  // Update greeting in nav
+  if (currentUser && currentUser.display_name) {
+    const navGreeting = document.getElementById('navGreeting');
+    if (navGreeting) {
+      navGreeting.textContent = `Hi ${currentUser.display_name}! 👋`;
     }
   }
+}
+
 
   function showProfile() {
     if (!currentUser) return;
@@ -353,47 +565,49 @@
   }
 
   // Login
-  document.getElementById('loginForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
+  // Login form submission
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+  
+  try {
+    const response = await fetch(`${API_BASE}/api/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
     
-    const resultDiv = document.getElementById('loginResult');
-    resultDiv.style.display = 'block';
-    resultDiv.style.background = '#FFF9E6';
-    resultDiv.textContent = 'Signing in...';
-
-    const loginData = {
-      email: document.getElementById('loginEmail').value.trim(),
-      password: document.getElementById('loginPassword').value
+    if (!response.ok) throw new Error('Login failed');
+    
+    const data = await response.json();
+    
+    // Set current user with capability booleans
+    currentUser = {
+      id: data.user.id,
+      email: data.user.email,
+      display_name: data.user.display_name,
+      role_giver: data.user.role_giver,
+      role_receiver: data.user.role_receiver,
+      role_driver: data.user.role_driver,
+      pref_no_contact: data.user.pref_no_contact,
+      pref_pickup_notes: data.user.pref_pickup_notes,
+      pref_notification_level: data.user.pref_notification_level
     };
+    
+    // Save to localStorage
+    localStorage.setItem('foodshare_user', JSON.stringify(currentUser));
+    
+    // Show dashboard (will initialize tabs automatically)
+    showDashboard();
+    
+  } catch (error) {
+    console.error('Login error:', error);
+    alert('Login failed. Please check your credentials.');
+  }
+});
 
-    try {
-      const res = await fetch(`${API_BASE}/api/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(loginData)
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        currentUser = data.user;
-        const role = prompt('Which view? (type: giver, receiver, or driver)');
-        currentUser.role = role || 'giver';
-        localStorage.setItem('foodshare_user', JSON.stringify(currentUser));
-        
-        resultDiv.style.background = '#DEF7E5';
-        resultDiv.textContent = '✅ Welcome back!';
-        
-        setTimeout(() => showDashboard(), 1000);
-      } else {
-        resultDiv.style.background = '#FFE5D9';
-        resultDiv.textContent = '❌ ' + (data.error || 'Login failed');
-      }
-    } catch (err) {
-      resultDiv.style.background = '#FFE5D9';
-      resultDiv.textContent = '❌ Error: ' + err.message;
-    }
-  });
 
   // Signup
   document.getElementById('onboardingForm').addEventListener('submit', async (e) => {
@@ -506,6 +720,58 @@
       console.error('Error loading profile:', err);
     }
   }
+async function saveProfile() {
+  const userId = currentUser.id;
+  
+  // Get checkbox values
+  const roleGiver = document.getElementById('roleGiver').checked;
+  const roleReceiver = document.getElementById('roleReceiver').checked;
+  const roleDriver = document.getElementById('roleDriver').checked;
+  
+  // ... gather other profile fields ...
+  
+  const profileData = {
+    display_name: document.getElementById('profileDisplayName').value,
+    zip_code: document.getElementById('profileZipCode').value,
+    role_giver: roleGiver,
+    role_receiver: roleReceiver,
+    role_driver: roleDriver,
+    pref_no_contact: document.getElementById('prefNoContact').checked,
+    pref_pickup_notes: document.getElementById('prefPickupNotes').value,
+    pref_notification_level: document.getElementById('prefNotificationLevel').value
+  };
+  
+  try {
+    const response = await fetch(`${API_BASE}/api/profile/${userId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(profileData)
+    });
+    
+    if (!response.ok) throw new Error('Profile update failed');
+    
+    // Update currentUser object
+    currentUser.role_giver = roleGiver;
+    currentUser.role_receiver = roleReceiver;
+    currentUser.role_driver = roleDriver;
+    currentUser.display_name = profileData.display_name;
+    currentUser.pref_no_contact = profileData.pref_no_contact;
+    currentUser.pref_pickup_notes = profileData.pref_pickup_notes;
+    currentUser.pref_notification_level = profileData.pref_notification_level;
+    
+    // Save to localStorage
+    localStorage.setItem('foodshare_user', JSON.stringify(currentUser));
+    
+    // Refresh tabs to show/hide based on new capabilities
+    initializeTabs();
+    
+    alert('Profile updated successfully! ✓');
+    
+  } catch (error) {
+    console.error('Profile save error:', error);
+    alert('Failed to save profile. Please try again.');
+  }
+}
 
   document.getElementById('profileForm').addEventListener('submit', async (e) => {
     e.preventDefault();

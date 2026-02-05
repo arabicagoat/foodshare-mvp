@@ -333,3 +333,122 @@ p {
 .mb-0 { margin-bottom: 0; }
 .mt-lg { margin-top: var(--fs-space-lg); }
 .hidden { display: none; }
+
+/* ================================
+   CAPABILITY TAB NAVIGATION
+   Mobile Portrait: 44-50pt touch targets, 16pt spacing
+   ================================ */
+
+.capability-tabs {
+  display: flex;
+  gap: 8px; /* 8pt spacing between tabs */
+  width: 100%;
+  margin: 16pt 0; /* 16pt top/bottom margin */
+  padding: 0 4px;
+  background: transparent;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tab {
+  flex: 1; /* Equal width tabs */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  
+  /* Touch target specs */
+  min-height: 48pt; /* 44-50pt range, using 48pt */
+  padding: 8pt 12pt;
+  
+  /* Typography: 15-17pt, Semibold (600) */
+  font-size: 15pt;
+  font-weight: 600;
+  line-height: 1.2;
+  
+  /* Visual style */
+  background: transparent;
+  border: none;
+  border-radius: 12pt; /* Pill shape */
+  color: rgba(60, 60, 67, 0.6); /* #3C3C43 at 60% opacity */
+  
+  /* Smooth transitions */
+  transition: all 0.2s ease;
+  cursor: pointer;
+  
+  /* Prevent text selection */
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tab__icon {
+  font-size: 20pt;
+  line-height: 1;
+}
+
+.tab__label {
+  font-size: 13pt;
+  white-space: nowrap;
+}
+
+/* Hover state: subtle background tint */
+.tab:hover {
+  background: #F2F2F7;
+  color: rgba(60, 60, 67, 0.8);
+}
+
+/* Active state: accent background, white text */
+.tab.active {
+  background: #007AFF; /* Apple blue accent */
+  color: #FFFFFF;
+}
+
+/* Hidden tabs (when user doesn't have capability) */
+.tab[style*="display: none"] {
+  display: none !important;
+}
+
+/* Responsive: smaller screens (<375pt width) */
+@media (max-width: 375px) {
+  .tab {
+    font-size: 13pt;
+    padding: 6pt 8pt;
+  }
+  
+  .tab__icon {
+    font-size: 18pt;
+  }
+  
+  .tab__label {
+    font-size: 11pt;
+  }
+}
+
+/* Extra small screens: icon-only mode */
+@media (max-width: 320px) {
+  .tab__label {
+    display: none;
+  }
+  
+  .tab {
+    min-width: 60px;
+  }
+}
+
+/* Alternative style: Bottom border instead of background (optional) */
+.tab.active.border-style {
+  background: transparent;
+  color: #007AFF;
+  border-bottom: 4pt solid #007AFF;
+  border-radius: 0;
+}
+
+/* Ensure views are hidden by default */
+.view {
+  display: none;
+}
+
+.view.active {
+  display: block;
+}
