@@ -205,6 +205,95 @@ app.get('/api/listings/my/:userId', async (req, res) => {
   }
 });
 
+// Claim a listing (receiver requests it)
+app.patch('/api/listings/:id/claim', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { receiver_id } = req.body;
+
+    if (!receiver_id) {
+      return res.status(400).json({ error: 'receiver_id is required' });
+    }
+
+    // Update listing status and store who claimed it
+    const result = await pool.query(
+      `UPDATE food_listings 
+       SET status = 'claimed'
+       WHERE id = $1 AND status = 'available'
+       RETURNING *`,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Listing not found or already claimed' });
+    }
+
+    // Store the claim in messages table (simple way to track who claimed it)
+    await pool.query(
+      `INSERT INTO messages (listing_id, sender_id, receiver_id, content)
+       VALUES ($1, $2, $3, $4)`,
+      [id, receiver_id, result.rows[0].user_id, 'CLAIM_REQUEST']
+    );
+
+    res.json({ listing: result.rows[0], message: 'Listing claimed successfully!' });
+  } catch (err) {
+    console.error('Claim listing error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Mark listing as completed
+app.patch('/api/listings/:id/complete', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      `UPDATE food_listings 
+       SET status = 'completed'
+       WHERE id = $1 AND status = 'claimed'
+       RETURNING *`,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Listing not found or not in claimed status' });
+    }
+
+    res.json({ listing: result.rows[0], message: 'Marked as completed!' });
+  } catch (err) {
+    console.error('Complete listing error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get single listing details
+app.get('/api/listings/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      `SELECT 
+        food_listings.*,
+        users.display_name,
+        users.zip_code
+       FROM food_listings
+       JOIN users ON food_listings.user_id = users.id
+       WHERE food_listings.id = $1`,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Listing not found' });
+    }
+
+    res.json({ listing: result.rows[0] });
+  } catch (err) {
+    console.error('Get listing error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`FoodShare server listening on http://localhost:${PORT}`);

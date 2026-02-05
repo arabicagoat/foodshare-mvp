@@ -288,35 +288,50 @@
 
     // Load my listings (giver)
     async function loadMyListings() {
-      try {
-        const res = await fetch(`${API_BASE}/api/listings/my/${currentUser.id}`);
-        const data = await res.json();
+  try {
+    const res = await fetch(`${API_BASE}/api/listings/my/${currentUser.id}`);
+    const data = await res.json();
 
-        const container = document.getElementById('myListings');
-        
-        if (data.listings && data.listings.length > 0) {
-          container.innerHTML = data.listings.map(listing => `
-            <div class="food-card">
-              <div class="food-card__header">
-                <h3 class="food-card__title">${listing.title}</h3>
-                <span class="badge badge--available">${listing.status}</span>
-              </div>
-              <p class="food-card__meta">Posted ${new Date(listing.created_at).toLocaleString()}</p>
-              <p class="food-card__description">${listing.description}</p>
-            </div>
-          `).join('');
-        } else {
-          container.innerHTML = `
-            <div class="empty-state">
-              <div class="empty-state__emoji">📦</div>
-              <p class="empty-state__title">No active listings yet</p>
-            </div>
-          `;
+    const container = document.getElementById('myListings');
+    
+    if (data.listings && data.listings.length > 0) {
+      container.innerHTML = data.listings.map(listing => {
+        let statusBadge = '';
+        let actionButton = '';
+
+        if (listing.status === 'available') {
+          statusBadge = '<span class="badge badge--available">AVAILABLE</span>';
+        } else if (listing.status === 'claimed') {
+          statusBadge = '<span class="badge badge--urgent">CLAIMED</span>';
+          actionButton = `<button class="btn btn--primary" style="margin-top: 0.75rem;" onclick="completeListing(${listing.id})">Mark as completed</button>`;
+        } else if (listing.status === 'completed') {
+          statusBadge = '<span class="badge" style="background: #E5E7EB; color: #6B7280;">COMPLETED</span>';
         }
-      } catch (err) {
-        console.error('Error loading listings:', err);
-      }
+
+        return `
+          <div class="food-card">
+            <div class="food-card__header">
+              <h3 class="food-card__title">${listing.title}</h3>
+              ${statusBadge}
+            </div>
+            <p class="food-card__meta">Posted ${new Date(listing.created_at).toLocaleString()}</p>
+            <p class="food-card__description">${listing.description}</p>
+            ${actionButton}
+          </div>
+        `;
+      }).join('');
+    } else {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state__emoji">📦</div>
+          <p class="empty-state__title">No active listings yet</p>
+        </div>
+      `;
     }
+  } catch (err) {
+    console.error('Error loading listings:', err);
+  }
+}
 
     // Load available listings (receiver)
     async function loadAvailableListings() {
@@ -358,9 +373,58 @@
       }
     }
 
-    function requestFood(listingId) {
-      alert(`Message feature coming next! For now, text/call the poster directly. Listing ID: ${listingId}`);
+    async function requestFood(listingId) {
+  if (!currentUser) {
+    alert('Please sign in first!');
+    return;
+  }
+
+  if (!confirm('Request this food for pickup?')) {
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/api/listings/${listingId}/claim`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ receiver_id: currentUser.id })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert('🎉 ' + data.message + '\n\nThe giver will be notified. Check back for pickup details!');
+      loadAvailableListings(); // Refresh the list
+    } else {
+      alert('Error: ' + (data.error || 'Could not claim listing'));
     }
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+}
+async function completeListing(listingId) {
+  if (!confirm('Mark this food share as completed?')) {
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/api/listings/${listingId}/complete`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert('✅ ' + data.message);
+      loadMyListings(); // Refresh the list
+    } else {
+      alert('Error: ' + (data.error || 'Could not complete listing'));
+    }
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+}
 
     function logout() {
       currentUser = null;
