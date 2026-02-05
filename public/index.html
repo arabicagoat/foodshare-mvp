@@ -320,27 +320,40 @@
     }
 
     // Show dashboard after login/signup
-// Show dashboard after login/signup
-function showDashboard() {
-  document.getElementById('onboardingScreen').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('dashboardScreen').style.display = 'block';
+    function hideAllViews() {
+      document.getElementById('giverView').style.display = 'none';
+      document.getElementById('receiverView').style.display = 'none';
+      document.getElementById('driverView').style.display = 'none';
+      document.getElementById('profileView').style.display = 'none';
+    }
 
-  document.getElementById('navGreeting').textContent = `Hi ${currentUser.display_name}! 👋`;
+    function showDashboard() {
+      document.getElementById('onboardingScreen').style.display = 'none';
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboardScreen').style.display = 'block';
 
-  hideAllViews();
+      document.getElementById('navGreeting').textContent = `Hi ${currentUser.display_name}! 👋`;
 
-  // Show appropriate view based on role
-  if (currentUser.role === 'giver') {
-    document.getElementById('giverView').style.display = 'block';
-  } else if (currentUser.role === 'receiver') {
-    document.getElementById('receiverView').style.display = 'block';
-    loadAvailableListings();
-  } else if (currentUser.role === 'driver') {
-    document.getElementById('driverView').style.display = 'block';
-  }
-}
+      hideAllViews();
 
+      // Show appropriate view based on role
+      if (currentUser.role === 'giver') {
+        document.getElementById('giverView').style.display = 'block';
+        loadMyListings();
+      } else if (currentUser.role === 'receiver') {
+        document.getElementById('receiverView').style.display = 'block';
+        loadAvailableListings();
+      } else if (currentUser.role === 'driver') {
+        document.getElementById('driverView').style.display = 'block';
+      }
+    }
+
+    function showProfile() {
+      if (!currentUser) return;
+      hideAllViews();
+      document.getElementById('dashboardScreen').style.display = 'block';
+      loadProfile();
+    }
 
     // Login form submission
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -466,85 +479,88 @@ function showDashboard() {
         alert('Error: ' + err.message);
       }
     });
-async function loadProfile() {
-  if (!currentUser) return;
 
-  try {
-    const res = await fetch(`${API_BASE}/api/profile/${currentUser.id}`);
-    const data = await res.json();
+    // Profile: load and save
+    async function loadProfile() {
+      if (!currentUser) return;
 
-    if (!res.ok) {
-      console.error('Error loading profile:', data.error);
-      return;
+      try {
+        const res = await fetch(`${API_BASE}/api/profile/${currentUser.id}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          console.error('Error loading profile:', data.error);
+          return;
+        }
+
+        const user = data.user;
+        currentUser = { ...currentUser, ...user };
+
+        document.getElementById('profileDisplayName').value = user.display_name || '';
+        document.getElementById('profileEmail').value = user.email || '';
+        document.getElementById('profileZipCode').value = user.zip_code || '';
+
+        document.getElementById('roleGiver').checked = !!user.role_giver;
+        document.getElementById('roleReceiver').checked = !!user.role_receiver;
+        document.getElementById('roleDriver').checked = !!user.role_driver;
+
+        document.getElementById('prefNoContact').checked = !!user.pref_no_contact;
+        document.getElementById('prefPickupNotes').value = user.pref_pickup_notes || '';
+        document.getElementById('prefNotificationLevel').value = user.pref_notification_level || 'all';
+
+        document.getElementById('profileView').style.display = 'block';
+      } catch (err) {
+        console.error('Error loading profile:', err);
+      }
     }
 
-    const user = data.user;
-    currentUser = { ...currentUser, ...user }; // keep in sync
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!currentUser) return;
 
-    document.getElementById('profileDisplayName').value = user.display_name || '';
-    document.getElementById('profileEmail').value = user.email || '';
-    document.getElementById('profileZipCode').value = user.zip_code || '';
+      const resultDiv = document.getElementById('profileResult');
+      resultDiv.style.display = 'block';
+      resultDiv.style.background = '#FFF9E6';
+      resultDiv.textContent = 'Saving your profile...';
 
-    document.getElementById('roleGiver').checked = !!user.role_giver;
-    document.getElementById('roleReceiver').checked = !!user.role_receiver;
-    document.getElementById('roleDriver').checked = !!user.role_driver;
+      const body = {
+        display_name: document.getElementById('profileDisplayName').value.trim(),
+        zip_code: document.getElementById('profileZipCode').value.trim(),
+        role_giver: document.getElementById('roleGiver').checked,
+        role_receiver: document.getElementById('roleReceiver').checked,
+        role_driver: document.getElementById('roleDriver').checked,
+        pref_no_contact: document.getElementById('prefNoContact').checked,
+        pref_pickup_notes: document.getElementById('prefPickupNotes').value.trim(),
+        pref_notification_level: document.getElementById('prefNotificationLevel').value
+      };
 
-    document.getElementById('prefNoContact').checked = !!user.pref_no_contact;
-    document.getElementById('prefPickupNotes').value = user.pref_pickup_notes || '';
-    document.getElementById('prefNotificationLevel').value = user.pref_notification_level || 'all';
+      try {
+        const res = await fetch(`${API_BASE}/api/profile/${currentUser.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
 
-    document.getElementById('profileView').style.display = 'block';
-  } catch (err) {
-    console.error('Error loading profile:', err);
-  }
-}
-document.getElementById('profileForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  if (!currentUser) return;
+        const data = await res.json();
 
-  const resultDiv = document.getElementById('profileResult');
-  resultDiv.style.display = 'block';
-  resultDiv.style.background = '#FFF9E6';
-  resultDiv.textContent = 'Saving your profile...';
+        if (res.ok) {
+          currentUser = { ...currentUser, ...data.user };
+          localStorage.setItem('foodshare_user', JSON.stringify(currentUser));
 
-  const body = {
-    display_name: document.getElementById('profileDisplayName').value.trim(),
-    zip_code: document.getElementById('profileZipCode').value.trim(),
-    role_giver: document.getElementById('roleGiver').checked,
-    role_receiver: document.getElementById('roleReceiver').checked,
-    role_driver: document.getElementById('roleDriver').checked,
-    pref_no_contact: document.getElementById('prefNoContact').checked,
-    pref_pickup_notes: document.getElementById('prefPickupNotes').value.trim(),
-    pref_notification_level: document.getElementById('prefNotificationLevel').value
-  };
+          resultDiv.style.background = '#DEF7E5';
+          resultDiv.textContent = '✅ Profile updated!';
 
-  try {
-    const res = await fetch(`${API_BASE}/api/profile/${currentUser.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+          document.getElementById('navGreeting').textContent = `Hi ${currentUser.display_name}! 👋`;
+        } else {
+          resultDiv.style.background = '#FFE5D9';
+          resultDiv.textContent = '❌ ' + (data.error || 'Could not update profile');
+        }
+      } catch (err) {
+        resultDiv.style.background = '#FFE5D9';
+        resultDiv.textContent = '❌ Error: ' + err.message;
+      }
     });
 
-    const data = await res.json();
-
-    if (res.ok) {
-      currentUser = { ...currentUser, ...data.user };
-      localStorage.setItem('foodshare_user', JSON.stringify(currentUser));
-
-      resultDiv.style.background = '#DEF7E5';
-      resultDiv.textContent = '✅ Profile updated!';
-
-      // Update greeting immediately
-      document.getElementById('navGreeting').textContent = `Hi ${currentUser.display_name}! 👋`;
-    } else {
-      resultDiv.style.background = '#FFE5D9';
-      resultDiv.textContent = '❌ ' + (data.error || 'Could not update profile');
-    }
-  } catch (err) {
-    resultDiv.style.background = '#FFE5D9';
-    resultDiv.textContent = '❌ Error: ' + err.message;
-  }
-});
 
     // Load my listings (giver)
     async function loadMyListings() {
