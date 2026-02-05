@@ -114,9 +114,11 @@
     <div class="nav">
       <div class="nav__brand">FoodShare</div>
       <div class="nav__links">
-        <a href="#" class="nav__link" id="navGreeting">Hi there!</a>
-        <a href="#" onclick="logout(); return false;" class="nav__link">Logout</a>
-      </div>
+  <a href="#" class="nav__link" id="navGreeting">Hi there!</a>
+  <a href="#" onclick="showProfile(); return false;" class="nav__link">Profile</a>
+  <a href="#" onclick="logout(); return false;" class="nav__link">Logout</a>
+</div>
+
     </div>
 
     <!-- Stats Section -->
@@ -189,6 +191,63 @@
       </div>
     </div>
   </div>
+
+<!-- Profile View -->
+<div id="profileView" style="display: none; margin-top: 2rem;">
+  <div class="card">
+    <h2>Your profile</h2>
+
+    <form id="profileForm">
+      <!-- Basic info -->
+      <div class="form-group">
+        <label class="form-label">Preferred name</label>
+        <input type="text" id="profileDisplayName" class="form-input" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" id="profileEmail" class="form-input" disabled />
+        <p class="text-muted" style="font-size: 0.875rem;">Email can’t be changed yet.</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">ZIP code</label>
+        <input type="text" id="profileZipCode" class="form-input" />
+      </div>
+
+      <!-- Participation roles (capabilities) -->
+      <div class="form-group">
+        <label class="form-label">How you want to participate</label>
+        <label><input type="checkbox" id="roleGiver" /> I can share food</label><br/>
+        <label><input type="checkbox" id="roleReceiver" /> I can pick up food</label><br/>
+        <label><input type="checkbox" id="roleDriver" /> I can help with delivery</label>
+      </div>
+
+      <!-- Pickup preferences -->
+      <div class="form-group">
+        <label class="form-label">Pickup preferences</label>
+        <label><input type="checkbox" id="prefNoContact" /> Prefer no-contact pickup/drop-off</label><br/>
+        <label class="form-label" style="margin-top: 0.5rem;">Default pickup notes (optional)</label>
+        <textarea id="prefPickupNotes" class="form-textarea" placeholder="e.g., Leave on front porch, gate code, best time of day..."></textarea>
+      </div>
+
+      <!-- Notification preferences (simple version) -->
+      <div class="form-group">
+        <label class="form-label">Notifications</label>
+        <select id="prefNotificationLevel" class="form-input">
+          <option value="all">Every request and update</option>
+          <option value="important">Only important updates</option>
+          <option value="none">No email notifications</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn--primary btn--full">Save profile</button>
+    </form>
+
+    <div id="profileResult" style="margin-top: 1rem; padding: 1rem; border-radius: 8px; display: none;"></div>
+  </div>
+</div>
+
 
   <script>
     const API_BASE = 'http://localhost:3000';
